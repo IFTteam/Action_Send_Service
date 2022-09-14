@@ -30,4 +30,7 @@ public class ScheduledTransmissionRequest {
 
     @JsonProperty("user_id")
     private Long userId;
+
+    @JsonProperty("journey_id")
+    private Long journeyId;
 }

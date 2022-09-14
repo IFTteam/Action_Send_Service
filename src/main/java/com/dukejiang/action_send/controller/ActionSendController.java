@@ -1,11 +1,14 @@
 package com.dukejiang.action_send.controller;
 
+import com.dukejiang.action_send.model.BaseTaskEntity;
+import com.dukejiang.action_send.model.Journey;
 import com.dukejiang.action_send.model.Transmission;
 import com.dukejiang.action_send.model.request.ScheduledTransmissionRequest;
 import com.dukejiang.action_send.model.request.TransmissionRequest;
 import com.dukejiang.action_send.model.response.Response;
 import com.dukejiang.action_send.model.response.SparkPostResponse;
 import com.dukejiang.action_send.repository.AudienceRepository;
+import com.dukejiang.action_send.repository.JourneyRepository;
 import com.dukejiang.action_send.repository.TransmissionRepository;
 import com.dukejiang.action_send.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
@@ -30,7 +34,9 @@ public class ActionSendController {
     private final TransmissionRepository transmissionRepository;
     private final UserRepository userRepository;
     private final AudienceRepository audienceRepository;
+    private final JourneyRepository journeyRepository;
     private final WebClient webClient;
+    private final RestTemplate restTemplate = new RestTemplate();
 
 
 
@@ -38,10 +44,12 @@ public class ActionSendController {
     public ActionSendController(TransmissionRepository transmissionRepository,
                                         UserRepository userRepository,
                                         AudienceRepository audienceRepository,
+                                        JourneyRepository journeyRepository,
                                         WebClient webClient){
         this.transmissionRepository = transmissionRepository;
         this.userRepository = userRepository;
         this.audienceRepository = audienceRepository;
+        this.journeyRepository = journeyRepository;
         this.webClient = webClient;
     }
 
@@ -71,11 +79,17 @@ public class ActionSendController {
         transmission.setUser(userRepository.getReferenceById(transmissionRequest.getUserId()));
         transmission.setCreatedAt(LocalDateTime.now());
         transmission.setCreatedBy("" + transmissionRequest.getUserId());
+        transmission.setJourney(journeyRepository.findById(transmissionRequest.getJourneyId()).get());
         transmissionRepository.save(transmission);
 
         Response response = new Response();
         response.setStatusCode(200);
         response.setMsg("Transmission successfully created");
+
+        //return task to core module
+        BaseTaskEntity coreModuleTask = new BaseTaskEntity();
+        restTemplate.postForObject("http://localhost:8081/ReturnTask", coreModuleTask, String.class);
+
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
@@ -105,11 +119,17 @@ public class ActionSendController {
         transmission.setUser(userRepository.getReferenceById(scheduledTransmissionRequest.getUserId()));
         transmission.setCreatedAt(LocalDateTime.now());
         transmission.setCreatedBy("" + scheduledTransmissionRequest.getUserId());
+        transmission.setJourney(journeyRepository.findById(scheduledTransmissionRequest.getJourneyId()).get());
         transmissionRepository.save(transmission);
 
         Response response = new Response();
         response.setStatusCode(200);
         response.setMsg("Scheduled Transmission successfully created");
+
+        //return task to core module
+        BaseTaskEntity coreModuleTask = new BaseTaskEntity();
+        restTemplate.postForObject("http://localhost:8081/ReturnTask", coreModuleTask, String.class);
+
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 

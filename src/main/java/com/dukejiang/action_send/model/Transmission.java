@@ -24,4 +24,8 @@ public class Transmission extends BaseEntity{
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
     private User user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "journey_id", referencedColumnName = "id", nullable = false)
+    private Journey journey;
 }

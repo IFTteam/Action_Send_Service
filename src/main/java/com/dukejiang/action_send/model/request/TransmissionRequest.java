@@ -25,4 +25,7 @@ public class TransmissionRequest {
     @JsonProperty("user_id")
     private Long userId;
 
+    @JsonProperty("journey_id")
+    private Long journeyId;
+
 }
